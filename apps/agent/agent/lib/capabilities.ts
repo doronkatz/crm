@@ -66,6 +66,11 @@ export function capabilitiesFrom(
 			gives:
 				"somewhere to keep a logo or a profile photo. Without it a record has no picture at all, because the URLs these sources hand back expire and are never stored as they are",
 		},
+		{
+			...fromEnv("OPENROUTER_API_KEY"),
+			label: "OpenRouter LLM",
+			gives: "LLM routing through OpenRouter instead of Context.dev",
+		},
 	];
 }
 
