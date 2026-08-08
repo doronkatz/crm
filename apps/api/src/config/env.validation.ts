@@ -69,6 +69,18 @@ export class EnvironmentVariables {
 	MICROSOFT_TENANT_ID?: string;
 
 	@IsOptional()
+	@IsString()
+	FASTMARK_CLIENT_ID?: string;
+
+	@IsOptional()
+	@IsString()
+	FASTMARK_CLIENT_SECRET?: string;
+
+	@IsOptional()
+	@IsUrl({ require_tld: false, require_protocol: true })
+	FASTMARK_REDIRECT_URI?: string;
+
+	@IsOptional()
 	@IsUrl({ require_tld: false })
 	API_URL?: string;
 
