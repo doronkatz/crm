@@ -5,7 +5,7 @@ const DEFAULT_APP_URL = "http://localhost:3000";
 const DEFAULT_MICROSOFT_TENANT = "common";
 
 const optional = (key: string): string | undefined => {
-	const value = process.env[key];
+	const value = process.env[key]?.trim();
 	return value && value.length > 0 ? value : undefined;
 };
 
@@ -42,6 +42,25 @@ const microsoftCredentials = ():
 	};
 };
 
+const fastmailCredentials = ():
+	| { clientId: string; clientSecret: string; redirectUri: string }
+	| undefined => {
+	const clientId = optional("FASTMARK_CLIENT_ID");
+	const clientSecret = optional("FASTMARK_CLIENT_SECRET");
+	const redirectUri = optional("FASTMARK_REDIRECT_URI");
+
+	if (!clientId || !clientSecret || !redirectUri) {
+		if (clientId || clientSecret || redirectUri) {
+			throw new Error(
+				"FASTMARK_CLIENT_ID, FASTMARK_CLIENT_SECRET, and FASTMARK_REDIRECT_URI must be set together.",
+			);
+		}
+		return undefined;
+	}
+
+	return { clientId, clientSecret, redirectUri };
+};
+
 const apiUrl =
 	optional("API_URL") ?? optional("BETTER_AUTH_URL") ?? DEFAULT_API_URL;
 
@@ -57,6 +76,7 @@ export const env = {
 	appUrl,
 	google: googleCredentials(),
 	microsoft: microsoftCredentials(),
+	fastmail: fastmailCredentials(),
 	cookieDomain: optional("AUTH_COOKIE_DOMAIN"),
 	trustedOrigins: [...new Set([...appUrls, apiUrl])],
 	isProduction: process.env.NODE_ENV === "production",
@@ -70,4 +90,8 @@ export function isMicrosoftConfigured(): boolean {
 	return env.microsoft !== undefined;
 }
 
-export { apiUrl, appUrl };
+export function isFastmailConfigured(): boolean {
+	return env.fastmail !== undefined;
+}
+
+export { apiUrl, appUrl, fastmailCredentials };

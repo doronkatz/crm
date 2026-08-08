@@ -1,6 +1,11 @@
 export { type Auth, auth, type Session, type SessionUser } from "./auth";
 export { AUTH_COOKIE_PREFIX } from "./cookies";
-export { isGoogleConfigured, isMicrosoftConfigured } from "./env";
+export {
+	fastmailCredentials,
+	isFastmailConfigured,
+	isGoogleConfigured,
+	isMicrosoftConfigured,
+} from "./env";
 export {
 	canChangeRole,
 	canManageCurrency,
