@@ -8,9 +8,9 @@ import { AUTH_COOKIE_PREFIX } from "./cookies";
 import { env } from "./env";
 import { ensureWorkspaceMembership } from "./organization";
 import {
+	FASTMAIL_PROVIDER_ID,
 	GOOGLE_PROVIDER_ID,
 	MICROSOFT_PROVIDER_ID,
-	MICROSOFT_SYNC_SCOPES,
 	SYNC_SCOPES,
 } from "./scopes";
 import { notifySignedIn } from "./signed-in";
@@ -52,6 +52,25 @@ if (env.microsoft) {
 	};
 }
 
+if (env.fastmail) {
+	socialProviders.fastmail = {
+		clientId: env.fastmail.clientId,
+		clientSecret: env.fastmail.clientSecret,
+
+		issuer: "https://auth.fastmail.com",
+
+		authorizationURL: "https://auth.fastmail.com/oauth2/auth",
+
+		tokenURL: "https://auth.fastmail.com/oauth2/token",
+
+		scope: ["email"],
+
+		mapProfileToUser: (profile) => ({
+			email: profile.email,
+		}),
+	};
+}
+
 export const auth = betterAuth({
 	appName: "CRM",
 	baseURL: env.apiUrl,
@@ -69,7 +88,7 @@ export const auth = betterAuth({
 	account: {
 		accountLinking: {
 			enabled: true,
-			trustedProviders: [GOOGLE_PROVIDER_ID, MICROSOFT_PROVIDER_ID],
+			trustedProviders: [GOOGLE_PROVIDER_ID, MICROSOFT_PROVIDER_ID, FASTMAIL_PROVIDER_ID],
 		},
 	},
 

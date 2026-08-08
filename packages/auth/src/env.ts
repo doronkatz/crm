@@ -42,6 +42,10 @@ const microsoftCredentials = ():
 	};
 };
 
+const fastmailCredentials = ():
+	| { clientId: string; clientSecret: string }
+	| undefined => pair("FASTMARK_CLIENT_ID", "FASTMARK_CLIENT_SECRET");
+
 const apiUrl =
 	optional("API_URL") ?? optional("BETTER_AUTH_URL") ?? DEFAULT_API_URL;
 
@@ -57,6 +61,7 @@ export const env = {
 	appUrl,
 	google: googleCredentials(),
 	microsoft: microsoftCredentials(),
+	fastmail: fastmailCredentials(),
 	cookieDomain: optional("AUTH_COOKIE_DOMAIN"),
 	trustedOrigins: [...new Set([...appUrls, apiUrl])],
 	isProduction: process.env.NODE_ENV === "production",
@@ -68,6 +73,10 @@ export function isGoogleConfigured(): boolean {
 
 export function isMicrosoftConfigured(): boolean {
 	return env.microsoft !== undefined;
+}
+
+export function isFastmailConfigured(): boolean {
+	return env.fastmail !== undefined;
 }
 
 export { apiUrl, appUrl };

@@ -1,9 +1,11 @@
 export const GOOGLE_PROVIDER_ID = "google";
 export const MICROSOFT_PROVIDER_ID = "microsoft";
+export const FASTMAIL_PROVIDER_ID = "fastmail";
 
 export const MAILBOX_PROVIDER_IDS = [
 	GOOGLE_PROVIDER_ID,
 	MICROSOFT_PROVIDER_ID,
+	FASTMAIL_PROVIDER_ID,
 ] as const;
 
 export type MailboxProviderId = (typeof MAILBOX_PROVIDER_IDS)[number];
