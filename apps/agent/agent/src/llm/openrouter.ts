@@ -1,4 +1,7 @@
-import { isOpenRouterConfigured, getOpenRouterConfig } from "@crm/env/openrouter";
+import {
+	getOpenRouterConfig,
+	isOpenRouterConfigured,
+} from "@crm/env/openrouter";
 
 export interface OpenRouterMessage {
 	role: "user" | "assistant" | "system";
@@ -32,15 +35,20 @@ export interface OpenRouterChatCompletionParams {
 	stream?: boolean;
 }
 
+const DEFAULT_TIMEOUT_MS = 30_000;
+
 export async function createOpenRouterChatCompletion(
 	params: OpenRouterChatCompletionParams,
+	options: { timeoutMs?: number } = {},
 ): Promise<OpenRouterChatCompletion | null> {
 	if (!isOpenRouterConfigured()) {
 		return null;
 	}
 
 	const config = getOpenRouterConfig();
-	const apiKey = process.env.OPENROUTER_API_KEY!;
+	const apiKey = process.env.OPENROUTER_API_KEY;
+	if (!apiKey) return null;
+	const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
 	const body: Record<string, unknown> = {
 		model: params.model ?? config.modelName,
@@ -53,23 +61,23 @@ export async function createOpenRouterChatCompletion(
 	if (params.max_tokens !== undefined) {
 		body.max_tokens = params.max_tokens;
 	}
+	if (params.stream !== undefined) {
+		body.stream = params.stream;
+	}
 
-	const response = await fetch(
-		`${config.baseUrl}/chat/completions`,
-		{
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${apiKey}`,
-			},
-			body: JSON.stringify(body),
+	const response = await fetch(`${config.baseUrl}/chat/completions`, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${apiKey}`,
 		},
-	);
+		body: JSON.stringify(body),
+		signal: AbortSignal.timeout(timeoutMs),
+	});
 
 	if (!response.ok) {
-		const text = await response.text();
 		throw new Error(
-			`OpenRouter API error: ${response.status} ${response.statusText} — ${text}`,
+			`OpenRouter API error: ${response.status} ${response.statusText}`,
 		);
 	}
 

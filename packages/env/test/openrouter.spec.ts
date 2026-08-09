@@ -89,9 +89,7 @@ describe("getOpenRouterConfig", () => {
 		delete process.env.OPENROUTER_MODEL_NAME;
 		expect(isOpenRouterConfigured()).toBe(true);
 		expect(getOpenRouterConfig().baseUrl).toBe(DEFAULT_OPENROUTER_BASE_URL);
-		expect(getOpenRouterConfig().modelName).toBe(
-			DEFAULT_OPENROUTER_MODEL_NAME,
-		);
+		expect(getOpenRouterConfig().modelName).toBe(DEFAULT_OPENROUTER_MODEL_NAME);
 	});
 
 	it("uses defaults for baseUrl and modelName even when only API key is present", () => {
