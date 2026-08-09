@@ -1,5 +1,6 @@
 import { db } from "@crm/db";
 import { readAgentModel } from "@crm/db/settings";
+import { getOpenRouterConfig, isOpenRouterConfigured } from "@crm/env/openrouter";
 
 export interface ModelSelection {
 	model: string;
@@ -7,6 +8,14 @@ export interface ModelSelection {
 }
 
 export async function selectedModel(): Promise<ModelSelection | null> {
+	if (isOpenRouterConfigured()) {
+		const config = getOpenRouterConfig();
+		return {
+			model: config.modelName,
+			modelContextWindowTokens: 128_000,
+		};
+	}
+
 	try {
 		const setting = await readAgentModel(db);
 
