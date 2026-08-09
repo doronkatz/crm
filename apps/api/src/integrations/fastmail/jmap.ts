@@ -20,8 +20,9 @@ export interface CrmEmail {
 }
 
 interface JmapSession {
-  coreAccounts: { apiUrl: string; accountId: string }[];
-  primaryAccounts: Record<string, { accountId: string }>;
+  apiUrl: string;
+  accounts: Record<string, { apiUrl: string; name: string }>;
+  primaryAccounts: Record<string, string>;
 }
 
 interface JmapEmail {
@@ -54,6 +55,7 @@ interface JmapEmailGetResponse {
 @Injectable()
 export class FastmailJmapClient {
   private readonly logger = new Logger(FastmailJmapClient.name);
+  private cachedAccountId: string | null = null;
 
   private async getApiUrl(accessToken: string): Promise<string> {
     const response = await fetch(SESSION_URL, {
@@ -65,13 +67,10 @@ export class FastmailJmapClient {
     }
 
     const session = (await response.json()) as JmapSession;
-    const account = session.coreAccounts[0];
-
-    if (!account?.apiUrl) {
-      throw new Error("JMAP session missing apiUrl");
-    }
-
-    return account.apiUrl;
+    this.cachedAccountId =
+      session.primaryAccounts["urn:ietf:params:jmap:mail"] ??
+      Object.keys(session.accounts)[0];
+    return session.apiUrl;
   }
 
   private async jmapRequest<T>(
@@ -80,6 +79,12 @@ export class FastmailJmapClient {
   ): Promise<MailboxResult<T>> {
     try {
       const apiUrl = await this.getApiUrl(accessToken);
+      const accountId = this.cachedAccountId!;
+
+      const resolvedCalls = methodCalls.map((call) => {
+        const [methodName, params] = call as [string, Record<string, unknown>];
+        return [methodName, { ...params, accountId }, "r1"];
+      });
 
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -87,7 +92,13 @@ export class FastmailJmapClient {
           authorization: `Bearer ${accessToken}`,
           "content-type": "application/json",
         },
-        body: JSON.stringify({ methodCalls }),
+        body: JSON.stringify({
+          using: [
+            "urn:ietf:params:jmap:core",
+            "urn:ietf:params:jmap:mail",
+          ],
+          methodCalls: resolvedCalls,
+        }),
       });
 
       if (response.status === 401) {
@@ -174,7 +185,7 @@ export class FastmailJmapClient {
           filter,
           sort: [{ property: "sentAt", isAscending: false }],
           limit: options.limit ?? 100,
-          accountId: "primary",
+
         },
         "r1",
       ],
@@ -196,7 +207,7 @@ export class FastmailJmapClient {
             "sentAt",
             "messageId",
           ],
-          accountId: "primary",
+
         },
         "r2",
       ],
@@ -228,7 +239,7 @@ export class FastmailJmapClient {
             "sentAt",
             "messageId",
           ],
-          accountId: "primary",
+
         },
         "r1",
       ],
@@ -256,7 +267,7 @@ export class FastmailJmapClient {
           filter,
           sort: [{ property: "sentAt", isAscending: false }],
           limit: options.limit ?? 100,
-          accountId: "primary",
+
         },
         "r1",
       ],
@@ -287,7 +298,7 @@ export class FastmailJmapClient {
             "sentAt",
             "messageId",
           ],
-          accountId: "primary",
+
         },
         "r1",
       ],
@@ -313,7 +324,7 @@ export class FastmailJmapClient {
           filter: { inMailboxes: ["Drafts"] },
           sort: [{ property: "sentAt", isAscending: false }],
           limit: options.limit ?? 50,
-          accountId: "primary",
+
         },
         "r1",
       ],
@@ -344,7 +355,7 @@ export class FastmailJmapClient {
             "sentAt",
             "messageId",
           ],
-          accountId: "primary",
+
         },
         "r1",
       ],
@@ -391,7 +402,7 @@ export class FastmailJmapClient {
               envelope,
             },
           },
-          accountId: "primary",
+
         },
         "r1",
       ],
