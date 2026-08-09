@@ -12,7 +12,7 @@ const KEYS = [
 ] as const;
 
 const saved: Record<string, string | undefined> = {} as Record<
-	(string | typeof KEYS[number]),
+	string | (typeof KEYS)[number],
 	string | undefined
 >;
 

@@ -63,14 +63,12 @@ describe("createOpenRouterChatCompletion", () => {
 				},
 			});
 
-		const messages: OpenRouterMessage[] = [
-			{ role: "user", content: "Hello" },
-		];
+		const messages: OpenRouterMessage[] = [{ role: "user", content: "Hello" }];
 		const result = await createOpenRouterChatCompletion({ messages });
 
 		expect(result).not.toBeNull();
-		expect(result!.model).toBe("openai/gpt-4o-mini");
-		expect(result!.choices[0].message.content).toBe("Hello!");
+		expect(result?.model).toBe("openai/gpt-4o-mini");
+		expect(result?.choices[0].message.content).toBe("Hello!");
 		expect(scope.isDone()).toBe(true);
 	});
 
@@ -175,9 +173,11 @@ describe("createOpenRouterChatCompletion", () => {
 	it("throws on non-ok response", async () => {
 		process.env.OPENROUTER_API_KEY = "sk-or-testkey";
 
-		nock(BASE_URL).post(CHAT_COMPLETIONS_PATH).reply(401, {
-			error: { message: "Invalid API key" },
-		});
+		nock(BASE_URL)
+			.post(CHAT_COMPLETIONS_PATH)
+			.reply(401, {
+				error: { message: "Invalid API key" },
+			});
 
 		await expect(
 			createOpenRouterChatCompletion({
@@ -189,31 +189,33 @@ describe("createOpenRouterChatCompletion", () => {
 	it("returns usage information from response", async () => {
 		process.env.OPENROUTER_API_KEY = "sk-or-testkey";
 
-		nock(BASE_URL).post(CHAT_COMPLETIONS_PATH).reply(200, {
-			id: "chatcmpl-usage",
-			object: "chat.completion",
-			created: 1234567890,
-			model: "openai/gpt-4o-mini",
-			choices: [
-				{
-					index: 0,
-					message: { role: "assistant", content: "Hi there" },
-					finish_reason: "stop",
+		nock(BASE_URL)
+			.post(CHAT_COMPLETIONS_PATH)
+			.reply(200, {
+				id: "chatcmpl-usage",
+				object: "chat.completion",
+				created: 1234567890,
+				model: "openai/gpt-4o-mini",
+				choices: [
+					{
+						index: 0,
+						message: { role: "assistant", content: "Hi there" },
+						finish_reason: "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: 8,
+					completion_tokens: 3,
+					total_tokens: 11,
 				},
-			],
-			usage: {
-				prompt_tokens: 8,
-				completion_tokens: 3,
-				total_tokens: 11,
-			},
-		});
+			});
 
 		const result = await createOpenRouterChatCompletion({
 			messages: [{ role: "user", content: "Hello" }],
 		});
 
 		expect(result).not.toBeNull();
-		expect(result!.usage).toEqual({
+		expect(result?.usage).toEqual({
 			prompt_tokens: 8,
 			completion_tokens: 3,
 			total_tokens: 11,
